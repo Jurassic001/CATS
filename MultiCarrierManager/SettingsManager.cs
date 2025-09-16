@@ -14,7 +14,8 @@ namespace MultiCarrierManager
         public bool GetTritium { get; private set; }
         public bool DisableRefuel { get; private set; }
         public bool PowerSaving { get; private set; }
-        public bool EfficientRefueling { get; private set; }
+        public int RefuelMode { get; private set; } // 0: Regular, 1: Bug fix for > 8 items, 2: Squadron
+        public bool SingleDiscordMessage { get; private set; }
 
         public SettingsManager(string file)
         {
@@ -43,9 +44,13 @@ namespace MultiCarrierManager
                 {
                     PowerSaving = Convert.ToBoolean(line.Split('=')[1]);
                 }
-                else if (line.StartsWith("efficient-refueling"))
+                else if  (line.StartsWith("squadron-carrier"))
                 {
-                    EfficientRefueling = Convert.ToBoolean(line.Split('=')[1]);
+                    RefuelMode = Convert.ToInt32(line.Split('=')[1]);
+                }
+                else  if (line.StartsWith("single-discord-message"))
+                {
+                    SingleDiscordMessage = Convert.ToBoolean(line.Split('=')[1]);
                 }
             }
         }
@@ -61,6 +66,22 @@ namespace MultiCarrierManager
                 }
 
                 i++;
+            }
+
+            File.WriteAllLines(FileName, IniFile);
+        }
+        
+        private void ReplaceInArray(string setting, int i)
+        {
+            int j = 0;
+            foreach (string line in (string[])IniFile.Clone())
+            {
+                if (line.StartsWith(setting))
+                {
+                    IniFile[j] = setting + "=" + Convert.ToString(i);
+                }
+
+                j++;
             }
 
             File.WriteAllLines(FileName, IniFile);
@@ -98,10 +119,16 @@ namespace MultiCarrierManager
             ReplaceInArray("power-saving", b);
         }
 
-        public void SetEfficientRefueling(bool b)
+        public void SetRefuelMode(int i)
         {
-            EfficientRefueling = b;
-            ReplaceInArray("efficient-refueling", b);
+            RefuelMode = i;
+            ReplaceInArray("refuel-mode", i);
+        }
+
+        public void SetSingleDiscordMessage(bool b)
+        {
+            SingleDiscordMessage = b;
+            ReplaceInArray("single-discord-message", b);
         }
     }
 }
